@@ -1,0 +1,14 @@
+name: cyber_tool
+version: 0.1.0
+
+authors:
+  - nicodamicodev <damiconicola98@gmail.com>
+
+targets:
+  cyber_tool:
+    main: src/cyber_tool.cr
+
+crystal: '>= 1.17.0'
+
+
+license: MIT
