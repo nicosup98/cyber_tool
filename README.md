@@ -1,6 +1,11 @@
 # cyber_tool
 
-TODO: Write a description here
+Cyber Tool es una aplicación de interfaz de línea de comandos (CLI) construida con Crystal, diseñada para el reconocimiento básico de redes. Ofrece dos funcionalidades principales:
+
+*   **Escaneo de Puertos:** Identifica los puertos TCP abiertos en una dirección IP de destino dentro de un rango específico.
+*   **Análisis de Encabezados HTTP:** Obtiene y muestra los encabezados HTTP de una URL determinada.
+
+Esta herramienta es ideal para desarrolladores, administradores de sistemas y entusiastas de la seguridad que necesitan una forma sencilla y eficiente de realizar comprobaciones iniciales de red.
 
 ## Installation
 
