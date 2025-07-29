@@ -10,6 +10,7 @@ end_port = 0_u16
 ip_to_scan = "0.0.0.0"
 command = ""
 url = ""
+verbose = false
 
 # Función para escanear un puerto específico en una IP
 def scan_specific_port(ip : String, port : UInt16) : PortResult
@@ -23,7 +24,7 @@ def scan_specific_port(ip : String, port : UInt16) : PortResult
 end
 
 # Función para realizar el escaneo de puertos en paralelo
-def port_scan(ip : String, ports_to_scan : Array(UInt16))
+def port_scan(ip : String, ports_to_scan : Array(UInt16), verbose  = false)
   results_channel = Channel(PortResult).new
 
   puts "Escaneando puertos en #{ip}..."
@@ -37,13 +38,14 @@ def port_scan(ip : String, ports_to_scan : Array(UInt16))
   results = (1..ports_to_scan.size).map do
     results_channel.receive
   end
-
-  results.sort_by(&.port).each do |result|
-    puts "Puerto #{result.port}: #{result.status}"
+  if verbose
+    results.sort_by(&.port).each do |result|
+      puts "Puerto #{result.port}: #{result.status}"
+    end
   end
 
   open_ports = results.select { |r| r.status == "Abierto".colorize(:green).to_s }.map(&.port).join(", ")
-  puts "\nResumen: los puertos #{open_ports.colorize(:green)} están abiertos."
+  puts open_ports.empty? ? "\nResumen: no hay puertos abiertos" : "\nResumen: los puertos #{open_ports.colorize(:blue)} están abiertos."
 end
 
 # Función para analizar los encabezados HTTP de una URL
@@ -72,6 +74,10 @@ OptionParser.parse do |parser|
     parser.on("-p", "--ports [PORTS]", "Lista de puertos a escanear") do |ports|
       end_port = ports.to_u16
     end
+    parser.on("-V","--verbose","mas informacion de los puertos escaneados") do
+      verbose = true
+    end
+
     parser.on("-I IP", "--ip IP", "Dirección IP a escanear") do |ip|
       if ip =~ /\A\d{1,3}(\.\d{1,3}){3}\z/
         ip_to_scan = ip
@@ -83,8 +89,6 @@ OptionParser.parse do |parser|
     parser.on("-i", "--init-port [PORT]", "Puerto inicial para el escaneo") do |port|
       init_port = port.to_u16
     end
-
-    
   end
 
   parser.on("header-scan", "Analiza los encabezados HTTP de una URL") do
@@ -98,9 +102,6 @@ OptionParser.parse do |parser|
         exit 1
       end
     end
-
-    
-
   end
 
   parser.on("-h", "--help", "Muestra esta ayuda") do
@@ -111,13 +112,17 @@ end
 
 case command
 when "scan-ports"
+  if end_port == 0
+    puts "debe especificar la cantidad de puertos a escanear use scan-ports -h para los comandos disponibles.".colorize(:red)
+    exit 1
+  end
+
   if init_port < 1 || end_port < init_port
     puts "Los puertos deben ser mayores que 0 y el puerto final debe ser mayor o igual al inicial.".colorize(:red)
     exit 1
   end
-  end_port = end_port == 0 ? 65535_u16 : end_port
 
-  port_scan(ip_to_scan, (init_port..end_port).to_a)
+  port_scan(ip_to_scan, (init_port..end_port).to_a, verbose)
 when "header-scan"
   if url.empty?
     puts "Debe proporcionar una URL para el escaneo de encabezados.".colorize(:red)
